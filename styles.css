@@ -64,6 +64,15 @@ body {
     right: 65%;
     bottom: 36%;
     z-index: 1; /* 最底层 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 图片盒子中的图片样式 */
+.box-image img {
+    max-height: 100%;
+    object-fit: contain;
 }
 
 /* 内容盒子样式 G5-R10 */
@@ -77,6 +86,7 @@ body {
     z-index: 2;
     padding: 20px;
     box-sizing: border-box;
+    overflow: hidden; /* 隐藏溢出内容 */
 }
 
 /* 按钮盒子样式 I10-N11 */
@@ -89,7 +99,7 @@ body {
     z-index: 3;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* 居中 */
     gap: 10px;
 }
 
@@ -100,18 +110,6 @@ body {
     text-overflow: ellipsis;
     font-size: 20px;
     font-weight: 600;
-}
-
-/* 在窄屏幕上隐藏文字，只显示按钮 */
-@media screen and (max-width: 600px) {
-    .box-button span {
-        display: none;
-    }
-    
-    .box-button {
-        justify-content: flex-end;
-        padding-right: 20px;
-    }
 }
 
 /* 标题盒子样式 I3-P4 */
@@ -125,7 +123,7 @@ body {
     font-size: 40px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* 居中 */
     z-index: 4;
 }
 
@@ -136,11 +134,58 @@ body {
     font-size: 16px;
     font-weight: 200;
     color: #fff;
+    height: 15%;
 }
 
 /* 作品卡片区域 */
 .content-cards {
-    /* 可以添加网格或弹性布局 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* 个人信息卡片样式 */
+.profile-card {
+    color: #fff;
+    background-color: #000;
+    border: 2px solid #ff00ffbb; /* 紫色边缘 */
+    border-radius: 15px; /* 圆角 */
+    /* 黑色渐变边缘 */
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    padding: 15px;
+    box-sizing: border-box;
+    flex: 1 1 100px; /* 允许卡片伸缩，最小宽度300px */
+    width: 100px;
+}
+
+.profile-card h3 {
+    font-family: 'ShowClick';
+    font-size: 20px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.profile-card ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.profile-card li {
+    font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+    font-size: 14px;
+    font-weight: 200;
+    margin-bottom: 3px;
+}
+
+.profile-card a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.profile-card a:hover {
+    text-decoration: underline;
 }
 
 /* 登录按钮样式 */
@@ -159,4 +204,77 @@ body {
 /* 登录按钮悬停效果 */
 .box-button button:hover {
     background-color: #6A0DAD; /* 稍微亮一点的紫色 */
+}
+/* 小屏幕上的内容盒子样式 */
+@media screen and (max-width: 1200px) {
+    .box-content {
+        left: 18%;
+        right: 10%;
+    }
+    .box-image {
+        left: 6%;
+        right: 75%;
+    }
+    .box-title {
+        left: 30%;
+    }
+}
+
+/* 小屏幕上的内容盒子样式 */
+@media screen and (max-width: 800px) {
+    .box-title {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .box-content {
+        left: 10%;
+        right: 10%;
+    }
+    .box-button span {
+        display: none;
+    }
+    
+    .box-button {
+        align-items: center;
+    }
+}
+
+/* 在窄屏幕上隐藏文字，只显示按钮 */
+@media screen and (max-width: 600px) {
+    .box-content {
+        padding-top: 20vh;
+    }
+    .box-button span {
+        display: none;
+    }
+    
+    .box-button {
+        align-items: center;
+    }
+    
+    /* 当屏幕小于600px时，让box-image居中显示 */
+    .box-image {
+        top: 40vh;
+        left: 50vw;
+        right: 25vw;
+        bottom: 25vw;
+        transform: translate(-50%, -50%);
+        width: 40vw;
+        height: 40vw;
+        z-index: 5;
+    }
+    .content-text {
+        top: 40vw;
+    }
+    .box-image img {
+        max-height: 100%;
+        object-fit: contain;
+    }
+}
+
+/* 极小屏幕上的内容盒子样式 - 只显示content-text */
+@media screen and (max-width: 480px) {
+    .box-content .content-cards {
+        display: none;
+    }
 }

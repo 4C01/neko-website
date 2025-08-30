@@ -8,7 +8,6 @@ Just a neko alone here.
 - From: China
 - Coding: HTML, JavaScript, Python, Java
 - Game: Minecraft(yep only minecraft)
-- 
 ## Contact
 
 - Email: 1519548448@qq.com

@@ -42,3 +42,41 @@ window.addEventListener('load', function() {
 
 // 页面加载完成后创建彩球
 window.addEventListener('load', createBubbles);
+
+// 响应式功能：根据屏幕大小控制元素显示
+function handleResponsive() {
+    const contentCards = document.querySelector('.content-cards');
+    const buttonSpan = document.querySelector('.box-button span');
+    const boxImage = document.querySelector('.box-image');
+    const boxImageImg = document.querySelector('.box-image img');
+    
+    if (contentCards && buttonSpan && boxImage && boxImageImg) {
+        // 获取屏幕宽度
+        const screenWidth = window.innerWidth;
+        
+        // 当屏幕宽度小于800px时，隐藏box-image
+        if (screenWidth <= 800) {
+            contentCards.style.display = 'none';
+            buttonSpan.style.display = 'none';
+        // 当屏幕宽度小于600px时，将图片src改为icon.jpg
+            if (screenWidth <= 600) {
+                boxImageImg.src = 'icon.jpg';
+                boxImage.style.display = 'block';
+            } else {
+                boxImageImg.src = '';
+                boxImage.style.display = 'none';
+            }
+        } else {
+            boxImageImg.src = 'neko.png';
+            boxImage.style.display = 'block';
+            contentCards.style.display = 'flex';
+            buttonSpan.style.display = 'inline';
+        }
+    }
+}
+
+// 页面加载时执行响应式处理
+window.addEventListener('load', handleResponsive);
+
+// 窗口大小改变时执行响应式处理
+window.addEventListener('resize', handleResponsive);
