@@ -30,6 +30,13 @@ function createBubbles() {
         bubble.style.animationDelay = `${Math.random() * 10}s`;
         
         container.appendChild(bubble);
+        
+        // 在动画结束后移除泡泡
+        setTimeout(() => {
+            if (bubble.parentNode) {
+                bubble.parentNode.removeChild(bubble);
+            }
+        }, 11000); // 动画持续时间11秒
     }
 }
 
@@ -39,9 +46,6 @@ window.addEventListener('load', function() {
     // 每隔一段时间重新创建彩球，实现循环效果
     setInterval(createBubbles, 5000);
 });
-
-// 页面加载完成后创建彩球
-window.addEventListener('load', createBubbles);
 
 // 响应式功能：根据屏幕大小控制元素显示
 function handleResponsive() {
