@@ -223,6 +223,7 @@ body {
 /* 小屏幕上的内容盒子样式 */
 @media screen and (max-width: 800px) {
     .box-title {
+        top: 8%;
         left: 50%;
         transform: translateX(-50%);
     }
