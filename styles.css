@@ -1,0 +1,162 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    overflow: hidden;
+    height: 100vh;
+    position: relative;
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    /* 从屏幕中间开始 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-10%, -10%);
+    opacity: 0;
+    animation: floatUp 11s ease-in infinite;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.3;
+    }
+    90% {
+        opacity: 0.2;
+    }
+    100% {
+        /* 上升到全屏 */
+        transform: translate(-50%, -100vh) scale(1);
+        opacity: 0;
+    }
+}
+@font-face {
+    font-family: 'ShowClick';
+    src: url('Showclick.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 盒子的基础样式 */
+.box-image, .box-content, .box-button {
+    color: #fff;
+    position: absolute;
+    background-color: #000;
+    border: 2px solid #ff00ffbb; /* 紫色边缘 */
+    border-radius: 15px; /* 圆角 */
+    /* 黑色渐变边缘 */
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+/* 图片盒子样式 E3-H9 */
+.box-image {
+    /* 根据Excel坐标近似定位，基于1080p分辨率 */
+    top: 18%;
+    left: 18%;
+    right: 65%;
+    bottom: 36%;
+    z-index: 1; /* 最底层 */
+}
+
+/* 内容盒子样式 G5-R10 */
+.box-content {
+    /* 根据Excel坐标近似定位，基于1080p分辨率 */
+    top: 32%;
+    left: 28%;
+    /* 宽度根据页面宽度调整，右侧保持固定margin */
+    right: 25%;
+    bottom: 20%;
+    z-index: 2;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* 按钮盒子样式 I10-N11 */
+.box-button {
+    /* 根据Excel坐标近似定位，基于1080p分辨率 */
+    top: 74%;
+    left: 36%;
+    right: 36%;
+    bottom: 16%;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 按钮盒子中的文字样式 */
+.box-button span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* 在窄屏幕上隐藏文字，只显示按钮 */
+@media screen and (max-width: 600px) {
+    .box-button span {
+        display: none;
+    }
+    
+    .box-button {
+        justify-content: flex-end;
+        padding-right: 20px;
+    }
+}
+
+/* 标题盒子样式 I3-P4 */
+.box-title {
+    position: absolute;
+    font-family: 'ShowClick';
+    left: 39%;
+    top: 18%;
+    bottom: 68%;
+    color: #fff;
+    font-size: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 4;
+}
+
+/* 文本内容区域 */
+.content-text {
+    margin: 20px;
+    font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+    font-size: 16px;
+    font-weight: 200;
+    color: #fff;
+}
+
+/* 作品卡片区域 */
+.content-cards {
+    /* 可以添加网格或弹性布局 */
+}
+
+/* 登录按钮样式 */
+.box-button button {
+    background-color: #4B0082; /* 暗紫色 */
+    color: white;
+    border: none;
+    border-radius: 8px; /* 圆角 */
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* 登录按钮悬停效果 */
+.box-button button:hover {
+    background-color: #6A0DAD; /* 稍微亮一点的紫色 */
+}
