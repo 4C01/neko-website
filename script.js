@@ -58,9 +58,9 @@ function handleResponsive() {
         if (screenWidth <= 800) {
             contentCards.style.display = 'none';
             buttonSpan.style.display = 'none';
-        // 当屏幕宽度小于600px时，将图片src改为icon.jpg
+        // 当屏幕宽度小于600px时，将图片src改为icon.png
             if (screenWidth <= 600) {
-                boxImageImg.src = 'icon.jpg';
+                boxImageImg.src = 'icon.png';
                 boxImage.style.display = 'block';
             } else {
                 boxImageImg.src = '';
