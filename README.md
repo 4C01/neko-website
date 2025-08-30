@@ -1,17 +1,24 @@
-# Trystage4C01 的个人主页
+# Trystage4C01
 
-这是一个简单的个人主页项目，包含以下文件：
+Just a neko alone here.
 
-- `index.html` - 主页文件
-- `styles.css` - 样式文件
-- `script.js` - JavaScript 脚本文件
-- `neko.png` - 页面图片
-- `Showclick.ttf` - 自定义字体文件
+## About me
 
-页面包含几个不同样式的区域：
-- 图片展示区
-- 文本内容区
-- 按钮区
-- 标题区
+- Birth: 2008
+- From: China
+- Coding: HTML, JavaScript, Python, Java
+- Game: Minecraft(yep only minecraft)
+- 
+## Contact
 
-页面使用了黑色背景和紫色边框的设计风格，具有独特的视觉效果。
+- Email: 1519548448@qq.com
+- Discord: 4C01
+- QQ: 2257104941
+
+## Social media
+
+- Twitter: [Trystage4C01](https://x.com/Trystage4C01)
+- Youtube: [Trystage4C01](https://www.youtube.com/@4c01)
+- Bilibili: [Trystage4C01](https://space.bilibili.com/2090920903)
+- DouYin(Chinese TikTok): [Trystage4C01](https://www.douyin.com/user/MS4wLjABAAAAc1ETHHiol3TNIGT037lFnboVnLmgPMi0IhcyprR1zDES9Wxd8BoygU09WAacVGAj)
+- Twitch: [Trystage4C01](https://www.twitch.tv/trystage4c01)
