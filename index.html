@@ -50,7 +50,18 @@
     <!-- 按钮盒子，位置在I10-N11区域 -->
     <div class="box-button">
         <span>杂鱼杂鱼~</span>
-        <button>点击登录</button>
+        <button id="loginButton">点击登录</button>
+    </div>
+    
+    <!-- 登录弹出框 -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2><b>请输入密码</b></h2>
+            <input type="password" id="passwordInput" class="password-input" placeholder="密码">
+            <button id="modalLoginButton" class="modal-login-button">登录</button>
+            <p id="message" class="message"></p>
+        </div>
     </div>
     
     <!-- 标题盒子，位置在I3-P4区域，无外观 -->
