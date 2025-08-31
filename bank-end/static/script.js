@@ -64,14 +64,14 @@ function handleResponsive() {
             buttonSpan.style.display = 'none';
         // 当屏幕宽度小于600px时，将图片src改为icon.png
             if (screenWidth <= 600) {
-                boxImageImg.src = 'icon.png';
+                boxImageImg.src = '/static/icon.png';
                 boxImage.style.display = 'block';
             } else {
                 boxImageImg.src = '';
                 boxImage.style.display = 'none';
             }
         } else {
-            boxImageImg.src = 'neko.png';
+            boxImageImg.src = '/static/neko.png';
             boxImage.style.display = 'block';
             contentCards.style.display = 'flex';
             buttonSpan.style.display = 'inline';
@@ -84,3 +84,14 @@ window.addEventListener('load', handleResponsive);
 
 // 窗口大小改变时执行响应式处理
 window.addEventListener('resize', handleResponsive);
+
+// 登录功能
+document.addEventListener('DOMContentLoaded', function() {
+    const loginButton = document.querySelector('.box-button button');
+    if (loginButton) {
+        loginButton.addEventListener('click', function() {
+            // 跳转到登录页面
+            window.location.href = '/login';
+        });
+    }
+});

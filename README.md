@@ -21,3 +21,13 @@ Just a neko alone here.
 - Bilibili: [Trystage4C01](https://space.bilibili.com/2090920903)
 - DouYin(Chinese TikTok): [Trystage4C01](https://www.douyin.com/user/MS4wLjABAAAAc1ETHHiol3TNIGT037lFnboVnLmgPMi0IhcyprR1zDES9Wxd8BoygU09WAacVGAj)
 - Twitch: [Trystage4C01](https://www.twitch.tv/trystage4c01)
+
+## Project Structure
+
+This project has been refactored into a Python integrated project with the following structure:
+
+- `bank-end/`: Backend directory
+  - `app.py`: Main Flask application
+  - `requirements.txt`: Python dependencies
+  - `static/`: Static files (CSS, JS, images, fonts)
+  - `templates/`: HTML templates
