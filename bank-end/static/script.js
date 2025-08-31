@@ -1,6 +1,6 @@
 // 创建彩球的函数
 function createBubbles() {
-    const bubbleCount = 40; // 增加彩球数量
+    const bubbleCount = 100; // 增加彩球数量
     const container = document.body;
     
     for (let i = 0; i < bubbleCount; i++) {
