@@ -49,7 +49,7 @@
     
     <!-- 按钮盒子，位置在I10-N11区域 -->
     <div class="box-button">
-        <span>杂鱼杂鱼~</span>
+        <span id="button-text">杂鱼杂鱼~</span>
         <button id="loginButton">点击登录</button>
     </div>
     
@@ -64,11 +64,43 @@
         </div>
     </div>
     
+    <!-- 环境异常提示 -->
+    <div id="blocked-alert" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #ff0000bb; color: white; padding: 10px 20px; border-radius: 5px; z-index: 1000; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;">
+        环境异常！您的IP已被封禁。
+    </div>
+    
     <!-- 标题盒子，位置在I3-P4区域，无外观 -->
     <div class="box-title">
         <h1>Trystage4C01</h1>
     </div>
     
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <script>
+        // 检查是否有环境异常提示
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const buttonText = document.getElementById('button-text');
+            
+            if (urlParams.get('blocked')) {
+                // 如果有blocked参数，显示环境异常提示并更新按钮文本
+                document.getElementById('blocked-alert').style.display = 'block';
+                buttonText.textContent = '环境异常';
+                
+                // 3秒后隐藏提示
+                setTimeout(function() {
+                    document.getElementById('blocked-alert').style.display = 'none';
+                    
+                    // 移除URL中的blocked参数
+                    const url = new URL(window.location);
+                    url.searchParams.delete('blocked');
+                    window.history.replaceState({}, document.title, url);
+                }, 3000);
+            } else {
+                // 如果没有blocked参数，保持原来的文本
+                buttonText.textContent = '杂鱼杂鱼~';
+            }
+        });
+    </script>
 </body>
 </html>
