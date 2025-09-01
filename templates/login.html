@@ -9,6 +9,7 @@
 <body>
     <!-- 登录表单盒子 -->
     <div class="box-content" style="top: 30%; left: 30%; right: 30%; bottom: 30%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div id="first-login-tip" style="margin-bottom: 15px; font-family: 'Microsoft YaHei', 'SimSun', sans-serif; font-size: 14px; color: #ff00ffbb; display: none;">首次登录，请设置您的密码</div>
         <h2 style="font-family: 'ShowClick'; margin-bottom: 20px;">登录</h2>
         <form id="loginForm" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
             <input type="password" id="password" placeholder="请输入密码" style="width: 80%; padding: 10px; margin-bottom: 20px; border-radius: 8px; border: 2px solid #ff00ffbb; background-color: #000; color: #fff; font-size: 16px;" required>
@@ -18,6 +19,15 @@
     </div>
     
     <script>
+        // 检查是否是首次登录
+        fetch(`/is_first_login`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_first_login) {
+                    document.getElementById('first-login-tip').style.display = 'block';
+                }
+            });
+        
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const password = document.getElementById('password').value;
