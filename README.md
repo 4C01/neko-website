@@ -1,33 +1,28 @@
 # Trystage4C01
 
-Just a neko alone here.
+只是一只孤独的喵喵在这里。
 
-## About me
+## 关于我
 
-- Birth: 2008
-- From: China
-- Coding: HTML, JavaScript, Python, Java
-- Game: Minecraft(yep only minecraft)
-## Contact
+- 出生年份：2008年
+- 来自：中国
+- 编程语言：HTML、JavaScript、Python、Java
+- 游戏：Minecraft（是的只玩我的世界）
 
-- Email: 1519548448@qq.com
-- Discord: 4C01
-- QQ: 2257104941
+## 联系方式
 
-## Social media
+- 邮箱：1519548448@qq.com
+- Discord：4C01
+- QQ：2257104941
 
-- Twitter: [Trystage4C01](https://x.com/Trystage4C01)
-- Youtube: [Trystage4C01](https://www.youtube.com/@4c01)
-- Bilibili: [Trystage4C01](https://space.bilibili.com/2090920903)
-- DouYin(Chinese TikTok): [Trystage4C01](https://www.douyin.com/user/MS4wLjABAAAAc1ETHHiol3TNIGT037lFnboVnLmgPMi0IhcyprR1zDES9Wxd8BoygU09WAacVGAj)
-- Twitch: [Trystage4C01](https://www.twitch.tv/trystage4c01)
+## 社交媒体
 
-## Project Structure
+- 推特：[Trystage4C01](https://x.com/Trystage4C01)
+- YouTube：[Trystage4C01](https://www.youtube.com/@4c01)
+- 哔哩哔哩：[Trystage4C01](https://space.bilibili.com/2090920903)
+- 抖音：[Trystage4C01](https://www.douyin.com/user/MS4wLjABAAAAc1ETHHiol3TNIGT037lFnboVnLmgPMi0IhcyprR1zDES9Wxd8BoygU09WAacVGAj)
+- Twitch：[Trystage4C01](https://www.twitch.tv/trystage4c01)
 
-This project has been refactored into a Python integrated project with the following structure:
+## 后端开发
 
-- `bank-end/`: Backend directory
-  - `app.py`: Main Flask application
-  - `requirements.txt`: Python dependencies
-  - `static/`: Static files (CSS, JS, images, fonts)
-  - `templates/`: HTML templates
+- [@qichenya](https://github.com/qichenya)
