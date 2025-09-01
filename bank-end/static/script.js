@@ -64,14 +64,14 @@ function handleResponsive() {
             buttonSpan.style.display = 'none';
         // 当屏幕宽度小于600px时，将图片src改为icon.png
             if (screenWidth <= 600) {
-                boxImageImg.src = 'icon.png';
+                boxImageImg.src = '/static/icon.png';
                 boxImage.style.display = 'block';
             } else {
                 boxImageImg.src = '';
                 boxImage.style.display = 'none';
             }
         } else {
-            boxImageImg.src = 'neko.png';
+            boxImageImg.src = '/static/neko.png';
             boxImage.style.display = 'block';
             contentCards.style.display = 'flex';
             buttonSpan.style.display = 'inline';
@@ -85,56 +85,13 @@ window.addEventListener('load', handleResponsive);
 // 窗口大小改变时执行响应式处理
 window.addEventListener('resize', handleResponsive);
 
-// 登录弹出框功能
-window.addEventListener('load', function() {
-    const loginButton = document.getElementById('loginButton');
-    const loginModal = document.getElementById('loginModal');
-    const closeModal = document.querySelector('.close');
-    const modalLoginButton = document.getElementById('modalLoginButton');
-    const passwordInput = document.getElementById('passwordInput');
-    const message = document.getElementById('message');
-    
-    // 显示弹出框
-    loginButton.addEventListener('click', function() {
-        loginModal.style.display = 'block';
-        passwordInput.value = '';
-        message.textContent = '';
-    });
-    
-    // 关闭弹出框
-    closeModal.addEventListener('click', function() {
-        loginModal.style.display = 'none';
-    });
-    
-    // 点击弹出框外部关闭
-    window.addEventListener('click', function(event) {
-        if (event.target === loginModal) {
-            loginModal.style.display = 'none';
-        }
-    });
-    
-    // 登录验证
-    modalLoginButton.addEventListener('click', function() {
-        const password = passwordInput.value;
-        if (password) {
-            // 访问认证服务
-            fetch(`http://auth.4c01.cn/login?pwd=${password}`)
-                .then(response => response.text())
-                .then(data => {
-                    if (data.startsWith('http')) {
-                        // 如果返回的是http地址，直接跳转
-                        window.location.href = data;
-                    } else {
-                        // 否则显示返回的消息
-                        message.textContent = data;
-                    }
-                })
-                .catch(error => {
-                    message.textContent = '登录请求失败';
-                    console.error('Error:', error);
-                });
-        } else {
-            message.textContent = '请输入密码';
-        }
-    });
+// 登录功能
+document.addEventListener('DOMContentLoaded', function() {
+    const loginButton = document.querySelector('.box-button button');
+    if (loginButton) {
+        loginButton.addEventListener('click', function() {
+            // 跳转到登录页面
+            window.location.href = '/login';
+        });
+    }
 });

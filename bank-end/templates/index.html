@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trystage4C01的小猫窝</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <!-- 最底层的图片盒子，位置在E3-H9区域 -->
-    <div class="box-image"><img src="neko.png" alt="" height=100%></div>
+    <div class="box-image"><img src="{{ url_for('static', filename='neko.png') }}" alt="" height=100%></div>
     
     <!-- 文本和作品展示盒子，位置在G5-R10区域 -->
     <div class="box-content">
@@ -69,6 +69,6 @@
         <h1>Trystage4C01</h1>
     </div>
     
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
