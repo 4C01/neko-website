@@ -9,12 +9,18 @@ from flask import Flask, request, render_template, jsonify, redirect, url_for
 
 
 # 获取真实IP地址
+# 是否信任代理头，仅在使用可信反向代理时设置为True
+TRUST_PROXY_HEADERS = False
+
 def get_real_ip():
     # 获取真实IP地址，考虑代理情况
-    if request.headers.get('X-Forwarded-For'):
-        ip = request.headers.get('X-Forwarded-For').split(',')[0].strip()
-    elif request.headers.get('X-Real-IP'):
-        ip = request.headers.get('X-Real-IP')
+    if TRUST_PROXY_HEADERS:
+        if request.headers.get('X-Forwarded-For'):
+            ip = request.headers.get('X-Forwarded-For').split(',')[0].strip()
+        elif request.headers.get('X-Real-IP'):
+            ip = request.headers.get('X-Real-IP')
+        else:
+            ip = request.remote_addr
     else:
         ip = request.remote_addr
     return ip
