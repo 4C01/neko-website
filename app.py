@@ -6,6 +6,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime, timedelta
 from flask import Flask, request, render_template, jsonify, redirect, url_for
+import uuid
 
 
 # 获取真实IP地址
@@ -78,6 +79,7 @@ def log_password_operation(operation, ip):
 # 结构: {ip: {'count': 错误次数, 'last_attempt': 最后尝试时间, 'blocked': 是否被封禁}}
 ip_attempts = {}
 blocked_ips = set()  # 被永久封禁的IP
+temp_credentials = {} # 存储临时凭证
 
 # 检查IP是否被封禁
 def is_ip_blocked(ip):
@@ -178,7 +180,7 @@ def login():  # 定义处理登录请求的函数
     if is_ip_blocked(ip):
         log_password_operation('Login attempt from blocked IP', ip)
         # 修改：IP被封禁时返回特定JSON响应而不是重定向
-        return {'error': 'blocked', 'message': 'IP is blocked'}, 403
+        return jsonify({'error': 'blocked', 'message': 'IP is blocked'}), 403
     
     if request.method == 'GET':
         # 渲染登录页面
@@ -195,7 +197,13 @@ def login():  # 定义处理登录请求的函数
             FIRST_LOGIN = False
             # 记录密码设置操作，不记录明文密码
             log_password_operation('Password set', ip)
-            return "200ok"  # 设置成功
+            
+            # 生成临时凭证
+            token = str(uuid.uuid4())
+            expiration = datetime.now() + timedelta(minutes=30)
+            temp_credentials[token] = expiration
+            
+            return jsonify({'status': '200ok', 'token': token}) # 设置成功
         else:
             # 验证密码
             with open(PWD_FILE, 'r') as f:
@@ -208,13 +216,41 @@ def login():  # 定义处理登录请求的函数
                 # 重置错误计数
                 if ip in ip_attempts:
                     del ip_attempts[ip]
-                return "200ok"  # 密码正确
+                
+                # 生成临时凭证
+                token = str(uuid.uuid4())
+                expiration = datetime.now() + timedelta(minutes=30)
+                temp_credentials[token] = expiration
+
+                return jsonify({'status': '200ok', 'token': token}) # 密码正确
             else:
                 # 记录登录失败操作
                 log_password_operation('Login failed', ip)
                 # 记录失败尝试
                 record_failed_attempt(ip)
-                return "401error", 401  # 密码错误
+                return jsonify({'status': '401error'}), 401  # 密码错误
+
+@app.route('/tpy')
+def tpy():
+    return render_template('tpy.html')
+
+@app.route('/validate_token', methods=['POST'])
+def validate_token():
+    data = request.get_json()
+    token = data.get('token')
+
+    if token and token in temp_credentials and datetime.now() < temp_credentials[token]:
+        return jsonify({'status': 'success'})
+    else:
+        ip = get_real_ip()
+        user_agent = request.headers.get('User-Agent', '')
+        headers = dict(request.headers)
+        return jsonify({
+            'status': 'failure',
+            'ip': ip,
+            'user_agent': user_agent,
+            'headers': headers
+        })
 
 if __name__ == '__main__':  # 当脚本直接运行时执行以下代码
     app.run(host='0.0.0.0', port=5000, threaded=True)  # 启动Flask应用

@@ -39,33 +39,18 @@
                 },
                 body: `pwd=${encodeURIComponent(password)}`
             })
-            .then(async response => {
-                if (response.status === 200) {
-                    // 提示登录成功正在跳转
-                    document.getElementById('message').innerText = '登录成功！正在跳转喵~';
-                    // 等待3秒后跳转到bing.com
-                    setTimeout(function() {
-                        window.location.href = 'https://www.bing.com';
-                    }, 3000);
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                if (data.status === '200ok') {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = '/tpy';
                 } else {
-                    // 尝试解析JSON响应
-                    try {
-                        const data = await response.json();
-                        if (data.error === 'blocked') {
-                            // IP被封禁，跳转到主页
-                            window.location.href = '/?blocked=true';
-                            return;
-                        }
-                    } catch (e) {
-                        // 如果不是JSON响应，继续处理
-                    }
-                    
-                    // 处理其他错误
-                    if (response.status === 401) {
-                        document.getElementById('message').innerText = '密码错误！请重新输入喵~';
-                    } else {
-                        document.getElementById('message').innerText = '登录请求失败QWQ~';
-                    }
+                    alert('Login failed!');
                 }
             })
             .catch(error => {

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification</title>
+    <script>
+        async function verifyToken() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('result').innerText = 'No token found. Access denied.';
+                return;
+            }
+
+            const response = await fetch('/validate_token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: token })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                document.getElementById('result').innerText = '校验通过';
+            } else {
+                let message = '错误的校验信息\n';
+                message += 'IP Address: ' + data.ip + '\n';
+                message += 'User Agent: ' + data.user_agent + '\n';
+                message += 'Request Headers: ' + JSON.stringify(data.headers, null, 2);
+                document.getElementById('result').innerText = message;
+            }
+        }
+    </script>
+</head>
+<body onload="verifyToken()">
+    <h1>Verification Page</h1>
+    <pre id="result">Verifying...</pre>
+</body>
+</html>
