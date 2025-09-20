@@ -1,12 +1,14 @@
-from flask import Flask, request, redirect, render_template, send_from_directory, jsonify  # 导入Flask框架、request对象和redirect函数，用于处理HTTP请求和重定向
+from flask import Flask, request, redirect, render_template, send_from_directory, jsonify, session  # 导入Flask框架、request对象和redirect函数，用于处理HTTP请求和重定向
 import os
 import json
 import bcrypt
 import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime, timedelta
-from flask import Flask, request, render_template, jsonify, redirect, url_for
 import uuid
+import secrets
+import re
+from functools import wraps
 
 
 # 获取真实IP地址
@@ -81,6 +83,50 @@ ip_attempts = {}
 blocked_ips = set()  # 被永久封禁的IP
 temp_credentials = {} # 存储临时凭证
 
+# 密码强度验证
+def validate_password_strength(password):
+    """验证密码强度"""
+    if len(password) < 6:
+        return False, "密码长度至少6位"
+    # 可选：如果需要更强的密码策略，可以启用以下验证
+    # if not re.search(r'[A-Z]', password):
+    #     return False, "密码必须包含大写字母"
+    # if not re.search(r'[a-z]', password):
+    #     return False, "密码必须包含小写字母"
+    # if not re.search(r'\d', password):
+    #     return False, "密码必须包含数字"
+    # if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+    #     return False, "密码必须包含特殊字符"
+    return True, "密码强度合格"
+
+# 清理过期的临时凭证
+def cleanup_expired_credentials():
+    """清理过期的临时凭证"""
+    current_time = datetime.now()
+    expired_tokens = [token for token, expiration in temp_credentials.items() if current_time >= expiration]
+    for token in expired_tokens:
+        del temp_credentials[token]
+
+# CSRF保护装饰器
+def csrf_protect(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if request.method == "POST":
+            token = session.get('_csrf_token')
+            if not token or token != request.form.get('_csrf_token'):
+                return jsonify({'error': 'CSRF token missing or invalid'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+# 生成CSRF token
+def generate_csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(16)
+    return session['_csrf_token']
+
+# 将CSRF token添加到模板上下文
+# 注意：这行代码需要在app创建后执行
+
 # 检查IP是否被封禁
 def is_ip_blocked(ip):
     # 检查是否被永久封禁
@@ -135,6 +181,22 @@ def reset_ip_attempts(ip):
 access_logger = setup_logging()
 
 app = Flask(__name__, static_folder='static', template_folder='templates')  # 创建Flask应用实例
+
+# 设置安全密钥
+app.secret_key = secrets.token_hex(32)
+
+# 添加安全头
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    return response
+
+# 将CSRF token添加到模板上下文
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
 # 添加请求前后处理器来记录日志
 @app.before_request
@@ -191,66 +253,112 @@ def login():  # 定义处理登录请求的函数
         
         if FIRST_LOGIN:
             # 首次登录，设置密码
+            # 验证密码强度
+            is_valid, message = validate_password_strength(pwd)
+            if not is_valid:
+                log_password_operation(f'Weak password rejected: {message}', ip)
+                return jsonify({'status': 'weak_password', 'message': message}), 400
+            
             hashed = bcrypt.hashpw(pwd.encode('utf-8'), bcrypt.gensalt())
-            with open(PWD_FILE, 'w') as f:
+            with open(PWD_FILE, 'w', encoding='utf-8') as f:
                 json.dump({'password': hashed.decode('utf-8')}, f)
             FIRST_LOGIN = False
             # 记录密码设置操作，不记录明文密码
             log_password_operation('Password set', ip)
             
+            # 清理过期凭证
+            cleanup_expired_credentials()
+            
             # 生成临时凭证
-            token = str(uuid.uuid4())
+            token = secrets.token_urlsafe(32)
             expiration = datetime.now() + timedelta(minutes=30)
             temp_credentials[token] = expiration
             
             return jsonify({'status': '200ok', 'token': token}) # 设置成功
         else:
             # 验证密码
-            with open(PWD_FILE, 'r') as f:
-                stored_data = json.load(f)
-            stored_hash = stored_data['password'].encode('utf-8')
-            
-            if bcrypt.checkpw(pwd.encode('utf-8'), stored_hash):
-                # 记录登录成功操作
-                log_password_operation('Login successful', ip)
-                # 重置错误计数
-                if ip in ip_attempts:
-                    del ip_attempts[ip]
+            try:
+                with open(PWD_FILE, 'r', encoding='utf-8') as f:
+                    stored_data = json.load(f)
+                stored_hash = stored_data['password'].encode('utf-8')
                 
-                # 生成临时凭证
-                token = str(uuid.uuid4())
-                expiration = datetime.now() + timedelta(minutes=30)
-                temp_credentials[token] = expiration
+                if bcrypt.checkpw(pwd.encode('utf-8'), stored_hash):
+                    # 记录登录成功操作
+                    log_password_operation('Login successful', ip)
+                    # 重置错误计数
+                    if ip in ip_attempts:
+                        del ip_attempts[ip]
+                    
+                    # 清理过期凭证
+                    cleanup_expired_credentials()
+                    
+                    # 生成临时凭证
+                    token = secrets.token_urlsafe(32)
+                    expiration = datetime.now() + timedelta(minutes=30)
+                    temp_credentials[token] = expiration
 
-                return jsonify({'status': '200ok', 'token': token}) # 密码正确
-            else:
-                # 记录登录失败操作
-                log_password_operation('Login failed', ip)
-                # 记录失败尝试
-                record_failed_attempt(ip)
-                return jsonify({'status': '401error'}), 401  # 密码错误
+                    return jsonify({'status': '200ok', 'token': token}) # 密码正确
+                else:
+                    # 记录登录失败操作
+                    log_password_operation('Login failed', ip)
+                    # 记录失败尝试
+                    record_failed_attempt(ip)
+                    return jsonify({'status': '401error'}), 401  # 密码错误
+            except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+                log_password_operation(f'Login error: {str(e)}', ip)
+                return jsonify({'status': '500error', 'message': 'Server error'}), 500
 
 @app.route('/tpy')
 def tpy():
     return render_template('tpy.html')
 
+@app.route('/check_auth')
+def check_auth():
+    """检查用户是否已认证（通过cookie）"""
+    # 清理过期凭证
+    cleanup_expired_credentials()
+    
+    # 从 cookie 获取 token
+    token = request.cookies.get('auth_token')
+    
+    if token and token in temp_credentials and datetime.now() < temp_credentials[token]:
+        return jsonify({'authenticated': True, 'message': '已认证'})
+    else:
+        return jsonify({'authenticated': False, 'message': '未认证或认证已过期'})
+
 @app.route('/validate_token', methods=['POST'])
 def validate_token():
-    data = request.get_json()
-    token = data.get('token')
+    # 清理过期凭证
+    cleanup_expired_credentials()
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'status': 'failure', 'message': 'Invalid request'}), 400
+            
+        token = data.get('token')
+        if not token:
+            return jsonify({'status': 'failure', 'message': 'Token required'}), 400
 
-    if token and token in temp_credentials and datetime.now() < temp_credentials[token]:
-        return jsonify({'status': 'success'})
-    else:
+        if token in temp_credentials and datetime.now() < temp_credentials[token]:
+            # 验证成功，设置cookie
+            response = jsonify({'status': 'success'})
+            # 设置7天有效期的cookie
+            response.set_cookie('auth_token', token, 
+                              max_age=7*24*60*60,  # 7天
+                              httponly=True,       # 仅HTTP访问，防止XSS
+                              secure=False,        # 在HTTPS下设为True
+                              samesite='Strict')   # CSRF保护
+            return response
+        else:
+            # 记录无效token尝试，但不泄露敏感信息
+            ip = get_real_ip()
+            log_password_operation('Invalid token validation attempt', ip)
+            return jsonify({'status': 'failure', 'message': 'Invalid or expired token'}), 401
+    except Exception as e:
         ip = get_real_ip()
-        user_agent = request.headers.get('User-Agent', '')
-        headers = dict(request.headers)
-        return jsonify({
-            'status': 'failure',
-            'ip': ip,
-            'user_agent': user_agent,
-            'headers': headers
-        })
+        log_password_operation(f'Token validation error: {str(e)}', ip)
+        return jsonify({'status': 'failure', 'message': 'Server error'}), 500
 
 if __name__ == '__main__':  # 当脚本直接运行时执行以下代码
     app.run(host='0.0.0.0', port=5000, threaded=True)  # 启动Flask应用

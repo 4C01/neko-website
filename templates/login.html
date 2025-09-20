@@ -47,10 +47,19 @@
             })
             .then(data => {
                 if (data.status === '200ok') {
+                    // 存储token到localStorage
                     localStorage.setItem('token', data.token);
+                    // 同时设置cookie（7天有效期）
+                    const expires = new Date();
+                    expires.setTime(expires.getTime() + (7 * 24 * 60 * 60 * 1000));
+                    document.cookie = `auth_token=${data.token};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+                    
+                    // 跳转到验证页面
                     window.location.href = '/tpy';
+                } else if (data.status === 'weak_password') {
+                    document.getElementById('message').innerText = data.message;
                 } else {
-                    alert('Login failed!');
+                    document.getElementById('message').innerText = '登录失败，请检查密码是否正确';
                 }
             })
             .catch(error => {

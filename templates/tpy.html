@@ -1,40 +1,318 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verification</title>
-    <script>
-        async function verifyToken() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                document.getElementById('result').innerText = 'No token found. Access denied.';
-                return;
+    <title>验证通过 - Trystage4C01的小猫窝</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .success-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            color: #00ff88;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        
+        .success-title {
+            font-family: 'ShowClick', 'Microsoft YaHei', sans-serif;
+            font-size: 36px;
+            color: #fff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px #ff00ffbb;
+        }
+        
+        .success-message {
+            font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+            font-size: 18px;
+            color: #ff00ffbb;
+            margin-bottom: 30px;
+        }
+        
+        .welcome-card {
+            background: rgba(75, 0, 130, 0.15);
+            border: 2px solid #ff00ffbb;
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(255, 0, 255, 0.3);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .cat-emoji {
+            font-size: 40px;
+            margin: 0 10px;
+            animation: wave 1s ease-in-out infinite alternate;
+        }
+        
+        .nav-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(45deg, #4B0082, #8A2BE2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .nav-btn:hover {
+            background: linear-gradient(45deg, #6A0DAD, #9370DB);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ff88, #00cc66);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
             }
-
-            const response = await fetch('/validate_token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ token: token })
-            });
-
-            const data = await response.json();
-            if (data.status === 'success') {
-                document.getElementById('result').innerText = '校验通过';
-            } else {
-                let message = '错误的校验信息\n';
-                message += 'IP Address: ' + data.ip + '\n';
-                message += 'User Agent: ' + data.user_agent + '\n';
-                message += 'Request Headers: ' + JSON.stringify(data.headers, null, 2);
-                document.getElementById('result').innerText = message;
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
             }
         }
-    </script>
+        
+        @keyframes wave {
+            0% {
+                transform: rotate(-10deg);
+            }
+            100% {
+                transform: rotate(10deg);
+            }
+        }
+        
+        .loading-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #ff00ffbb;
+            border-top: 5px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        .error-icon {
+            font-size: 80px;
+            color: #ff4444;
+            margin-bottom: 20px;
+        }
+        
+        .error-title {
+            font-family: 'ShowClick', 'Microsoft YaHei', sans-serif;
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        
+        .error-message {
+            font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+            font-size: 16px;
+            color: #ff00ffbb;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
-<body onload="verifyToken()">
-    <h1>Verification Page</h1>
-    <pre id="result">Verifying...</pre>
+<body>
+    <!-- 加载状态 -->
+    <div id="loading" class="loading-container">
+        <div class="loading-spinner"></div>
+        <div style="color: #fff; font-family: 'Microsoft YaHei', sans-serif; font-size: 18px;">验证中...</div>
+    </div>
+    
+    <!-- 成功状态 -->
+    <div id="success" class="success-container" style="display: none;">
+        <div class="welcome-card">
+            <div class="success-icon">验证通过</div>
+            <div class="status-badge">欢迎来到4C的小猫窝！</div>
+            <div class="success-title"></div>
+            <div class="success-message">
+                <span class="cat-emoji"></span>
+                您已成功通过身份验证
+                <span class="cat-emoji"></span>
+                <br><br>
+                <span style="font-size: 14px; color: #ccc;">享受您的专属空间吧～</span>
+            </div>
+            
+            <div class="nav-buttons">
+                <a href="/" class="nav-btn">返回首页</a>
+                <button class="nav-btn" onclick="logout()">退出登录</button>
+                <button class="nav-btn" onclick="refreshAuth()">刷新认证</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 错误状态 -->
+    <div id="error" class="error-container" style="display: none;">
+        <div class="welcome-card">
+            <div class="error-icon">✗</div>
+            <div class="error-title">验证失败</div>
+            <div class="error-message" id="error-text">认证信息无效或已过期</div>
+            
+            <div class="nav-buttons">
+                <a href="/login" class="nav-btn">重新登录</a>
+                <a href="/" class="nav-btn">返回首页</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 设置Cookie的工具函数
+        function setCookie(name, value, days) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+        }
+        
+        // 获取Cookie的工具函数
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+        
+        // 删除Cookie的工具函数
+        function deleteCookie(name) {
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+        }
+        
+        // 验证token函数
+        async function verifyToken() {
+            try {
+                // 首先尝试从localStorage获取token
+                let token = localStorage.getItem('token');
+                
+                // 如果localStorage没有，尝试从cookie获取
+                if (!token) {
+                    token = getCookie('auth_token');
+                }
+                
+                if (!token) {
+                    showError('未找到认证信息，请重新登录');
+                    return;
+                }
+                
+                const response = await fetch('/validate_token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token: token })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // 验证成功，设置cookie（7天有效期）
+                    setCookie('auth_token', token, 7);
+                    showSuccess();
+                } else {
+                    // 清理无效的认证信息
+                    localStorage.removeItem('token');
+                    deleteCookie('auth_token');
+                    showError(data.message || '认证信息无效或已过期');
+                }
+            } catch (error) {
+                console.error('验证过程中发生错误:', error);
+                showError('验证过程中发生错误，请稍后重试');
+            }
+        }
+        
+        // 显示成功状态
+        function showSuccess() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+        }
+        
+        // 显示错误状态
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-text').innerText = message;
+        }
+        
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('token');
+            deleteCookie('auth_token');
+            alert('已退出登录');
+            window.location.href = '/';
+        }
+        
+        // 刷新认证
+        function refreshAuth() {
+            document.getElementById('success').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            setTimeout(verifyToken, 500);
+        }
+        
+        // 页面加载时执行验证
+        window.addEventListener('load', function() {
+            setTimeout(verifyToken, 1000); // 1秒后开始验证，给加载动画一些时间
+        });
+    </script>
 </body>
 </html>
