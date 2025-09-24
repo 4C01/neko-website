@@ -1,0 +1,29 @@
+{
+    "rate_limit": {
+        "messages_per_minute": 30,
+        "cleanup_interval": 300
+    },
+    "chat": {
+        "max_message_length": 500,
+        "max_username_length": 20,
+        "message_history_limit": 500,
+        "message_cleanup_threshold": 100,
+        "cleanup_schedule": {
+            "enabled": true,
+            "interval_hours": 24,
+            "keep_days": 7
+        }
+    },
+    "security": {
+        "require_auth": true,
+        "require_registration": true,
+        "filter_content": true,
+        "banned_words": ["spam", "advertisement"],
+        "password_min_length": 6
+    },
+    "paths": {
+        "temp_messages": "chats/temps",
+        "users": "chats/users",
+        "config": "chats/config.json"
+    }
+}

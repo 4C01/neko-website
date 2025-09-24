@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室登录 - Trystage4C01的小猫窝</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .chat-auth-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            background: rgba(75, 0, 130, 0.15);
+            border: 2px solid #ff00ffbb;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(255, 0, 255, 0.3);
+            padding: 30px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .auth-title {
+            font-family: 'ShowClick', 'Microsoft YaHei', sans-serif;
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ff00ffbb;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 25px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            color: #ff00ffbb;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(45deg, #4B0082, #8A2BE2);
+            color: #fff;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ff00ffbb;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-size: 16px;
+            font-family: 'Microsoft YaHei', sans-serif;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #8A2BE2;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+        }
+
+        .auth-button {
+            width: 100%;
+            background: linear-gradient(45deg, #4B0082, #8A2BE2);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .auth-button:hover {
+            background: linear-gradient(45deg, #6A0DAD, #9370DB);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .auth-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .nav-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            background: linear-gradient(45deg, #4B0082, #8A2BE2);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: linear-gradient(45deg, #6A0DAD, #9370DB);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            min-height: 20px;
+            position: relative;
+            z-index: 15;
+            word-wrap: break-word;
+            display: none;
+            clear: both;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+
+        .message.error {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid #ff4444;
+        }
+
+        .password-hint {
+            font-size: 12px;
+            color: #ff00ffbb;
+            margin-top: 5px;
+        }
+
+        @media screen and (max-width: 480px) {
+            .chat-auth-container {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .auth-title {
+                font-size: 24px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航按钮 -->
+    <div class="nav-buttons" style="position: fixed; top: 20px; right: 20px; z-index: 20;">
+        <a href="/" class="nav-btn">首页</a>
+        <a href="/tpy" class="nav-btn">验证</a>
+    </div>
+
+    <!-- 聊天室认证容器 -->
+    <div class="chat-auth-container">
+        <h1 class="auth-title">聊天室认证</h1>
+        
+        <!-- 切换标签 -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchTab('login')">登录</button>
+            <button class="auth-tab" onclick="switchTab('register')">注册</button>
+        </div>
+
+        <!-- 登录表单 -->
+        <div id="loginForm" class="auth-form active">
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="loginUsername" placeholder="请输入用户名" required maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="auth-button" id="loginButton">登录聊天室</button>
+            </form>
+        </div>
+
+        <!-- 注册表单 -->
+        <div id="registerForm" class="auth-form">
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="registerUsername" placeholder="2-20个字符，支持中英文数字" required maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="registerPassword" placeholder="请输入密码" required>
+                    <div class="password-hint">密码长度至少6位</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" class="form-input" id="confirmPassword" placeholder="请再次输入密码" required>
+                </div>
+                <button type="submit" class="auth-button" id="registerButton">注册账号</button>
+            </form>
+        </div>
+
+        <!-- 消息显示区域 -->
+        <div id="messageArea" class="message"></div>
+    </div>
+
+    <script>
+        // 切换标签页
+        function switchTab(tabName) {
+            // 更新标签样式
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 更新表单显示
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            document.getElementById(tabName + 'Form').classList.add('active');
+            
+            // 清空消息
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = '';
+            messageArea.className = '';
+            messageArea.style.display = 'none';
+        }
+
+        // 显示消息
+        function showMessage(message, type = 'info') {
+            const messageArea = document.getElementById('messageArea');
+            
+            // 清空之前的消息和样式
+            messageArea.innerHTML = '';
+            messageArea.className = '';
+            messageArea.style.display = 'none';
+            
+            // 设置新消息
+            messageArea.textContent = message;
+            messageArea.className = `message ${type}`;
+            messageArea.style.display = 'block';
+            messageArea.style.position = 'relative';
+            messageArea.style.zIndex = '15';
+        }
+
+        // 处理注册
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const button = document.getElementById('registerButton');
+            
+            // 验证输入
+            if (password !== confirmPassword) {
+                showMessage('两次输入的密码不一致', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('密码长度至少6位', 'error');
+                return;
+            }
+            
+            button.disabled = true;
+            button.textContent = '注册中...';
+            
+            try {
+                const response = await fetch('/api/chat/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showMessage('注册成功！请登录', 'success');
+                    // 自动切换到登录标签
+                    setTimeout(() => {
+                        document.querySelector('.auth-tab[onclick*="login"]').click();
+                        document.getElementById('loginUsername').value = username;
+                    }, 1500);
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('注册失败，请稍后重试', 'error');
+            }
+            
+            button.disabled = false;
+            button.textContent = '注册账号';
+        }
+
+        // 处理登录
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const button = document.getElementById('loginButton');
+            
+            button.disabled = true;
+            button.textContent = '登录中...';
+            
+            try {
+                const response = await fetch('/api/chat/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showMessage('登录成功！正在进入聊天室...', 'success');
+                    // 保存聊天室认证信息
+                    localStorage.setItem('chatToken', result.chat_token);
+                    localStorage.setItem('chatUsername', result.username);
+                    
+                    // 跳转到聊天室
+                    setTimeout(() => {
+                        window.location.href = '/chat';
+                    }, 1500);
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('登录失败，请稍后重试', 'error');
+            }
+            
+            button.disabled = false;
+            button.textContent = '登录聊天室';
+        }
+
+        // 页面加载时检查认证状态
+        window.addEventListener('load', function() {
+            // 检查网站认证
+            const token = localStorage.getItem('token') || getCookie('auth_token');
+            if (!token) {
+                showMessage('请先完成网站认证', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            }
+        });
+
+        // Cookie工具函数
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>
