@@ -846,4 +846,4 @@ def init_cleanup_scheduler():
 if __name__ == '__main__':  # 当脚本直接运行时执行以下代码
     # 初始化清理计划任务
     init_cleanup_scheduler()
-    app.run(host='0.0.0.0', port=5000, threaded=True)  # 启动Flask应用
+    app.run(host='0.0.0.0', port=5070, threaded=True)  # 启动Flask应用
