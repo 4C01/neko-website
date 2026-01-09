@@ -9,7 +9,8 @@ class ChatRoom {
         this.typingTimeout = null;
         this.onlineUsers = new Set();
         this.lastMessageId = null; // 记录最后一条消息的ID
-        this.loadedMessages = new Set(); // 记录已加载的消息ID
+        this.loadedMessages = new Map(); // 记录已加载的消息，使用Map以便快速查找
+        this.maxMessages = 100; // 最多显示100条消息
         
         this.initElements();
         this.initEventListeners();
@@ -131,11 +132,61 @@ class ChatRoom {
         // 停止输入状态
         this.stopTyping();
 
-        // 直接发送到服务器，不在本地预先显示
-        this.simulateSendToServer(message);
+        // 处理特殊命令
+        if (message === '/clear') {
+            // 清除所有聊天记录
+            this.clearChatHistory();
+            return;
+        }
+
+        // 本地预先显示消息，提高用户体验
+        const tempMessageId = 'temp-' + Date.now();
+        this.addMessage(this.username, message, true, new Date().toISOString(), tempMessageId);
+
+        // 发送消息到服务器
+        this.simulateSendToServer(message, tempMessageId);
+    }
+    
+    // 清除所有聊天记录
+    clearChatHistory() {
+        // 清空聊天消息区域（包括系统消息）
+        const messages = this.chatMessages.querySelectorAll('.message, .system-message');
+        messages.forEach(msg => msg.remove());
+        
+        // 清空已加载消息的记录
+        this.loadedMessages.clear();
+        this.lastMessageId = null;
+        
+        // 添加系统消息提示
+        this.addSystemMessage('聊天记录已清除');
+        
+        // 设置标志，不再加载历史消息
+        this.shouldLoadHistory = false;
+        
+        // 清除服务器端的聊天记录
+        this.clearServerHistory();
+    }
+    
+    // 清除服务器端的聊天记录
+    async clearServerHistory() {
+        try {
+            const response = await fetch('/api/chat/clear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+                console.log('服务器端聊天记录已清除');
+            }
+        } catch (error) {
+            console.error('清除服务器端聊天记录失败:', error);
+        }
     }
 
-    async simulateSendToServer(message) {
+    async simulateSendToServer(message, tempMessageId) {
         // 发送消息到服务器
         try {
             const response = await fetch('/api/chat/send', {
@@ -151,73 +202,43 @@ class ChatRoom {
             const result = await response.json();
             if (result.status === 'error') {
                 this.addSystemMessage(result.message);
+                // 删除本地临时消息
+                this.removeTempMessage(tempMessageId);
             } else if (result.status === 'success') {
-                // 发送成功后立即刷新消息
-                this.loadChatHistory();
+                // 服务器返回消息后，更新本地临时消息或直接使用服务器返回的消息
+                this.removeTempMessage(tempMessageId);
+                // 不需要立即刷新消息，等待定期刷新即可
+                // 这样可以减少网络请求次数
             }
         } catch (error) {
             this.addSystemMessage('发送消息失败，请稍后重试');
+            // 删除本地临时消息
+            this.removeTempMessage(tempMessageId);
+        }
+    }
+    
+    // 删除临时消息
+    removeTempMessage(tempMessageId) {
+        const messageElement = document.getElementById(`msg-${tempMessageId}`);
+        if (messageElement) {
+            messageElement.remove();
+            this.loadedMessages.delete(tempMessageId);
         }
     }
 
     addMessage(username, message, isOwn = false, timestamp = null, messageId = null) {
         // 如果消息ID已存在，不重复添加
-        if (messageId && document.getElementById(`msg-${messageId}`)) {
+        if (messageId && this.loadedMessages.has(messageId)) {
             return;
         }
         
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${isOwn ? 'own' : ''}`;
-        
-        // 为消息元素添加唯一ID
-        if (messageId) {
-            messageElement.id = `msg-${messageId}`;
-        }
-
-        const avatar = document.createElement('div');
-        avatar.className = 'message-avatar';
-        avatar.textContent = username.charAt(0).toUpperCase();
-
-        const content = document.createElement('div');
-        content.className = 'message-content';
-
-        const info = document.createElement('div');
-        info.className = 'message-info';
-
-        const usernameSpan = document.createElement('span');
-        usernameSpan.className = 'message-username';
-        usernameSpan.textContent = username;
-
-        const timeSpan = document.createElement('span');
-        timeSpan.className = 'message-time';
-        if (timestamp) {
-            const date = new Date(timestamp);
-            timeSpan.textContent = date.toLocaleTimeString('zh-CN', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        } else {
-            timeSpan.textContent = new Date().toLocaleTimeString('zh-CN', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        info.appendChild(usernameSpan);
-        info.appendChild(timeSpan);
-
-        const text = document.createElement('div');
-        text.className = 'message-text';
-        text.textContent = this.processMessage(message);
-
-        content.appendChild(info);
-        content.appendChild(text);
-
-        messageElement.appendChild(avatar);
-        messageElement.appendChild(content);
-
-        this.chatMessages.appendChild(messageElement);
-        this.scrollToBottom();
+        // 使用新的批量添加方法
+        this.batchAddMessages([{
+            id: messageId,
+            username: username,
+            message: message,
+            timestamp: timestamp
+        }]);
     }
 
     addSystemMessage(message) {
@@ -271,35 +292,143 @@ class ChatRoom {
             const data = await response.json();
             
             if (data.status === 'success') {
-                const newMessages = data.messages;
+                let newMessages = data.messages;
                 
-                // 第一次加载，清空现有消息区域（除了系统消息）
+                // 第一次加载，只显示最新的maxMessages条消息
                 if (this.loadedMessages.size === 0) {
                     // 清空所有非系统消息
                     const messages = this.chatMessages.querySelectorAll('.message:not(.system-message)');
                     messages.forEach(msg => msg.remove());
                     
-                    // 加载所有消息
-                    newMessages.forEach(msg => {
-                        this.addMessage(msg.username, msg.message, msg.username === this.username, msg.timestamp, msg.id);
-                        this.loadedMessages.add(msg.id);
-                        this.lastMessageId = msg.id;
-                    });
+                    // 只保留最新的maxMessages条消息
+                    if (newMessages.length > this.maxMessages) {
+                        newMessages = newMessages.slice(-this.maxMessages);
+                    }
+                    
+                    // 批量添加消息
+                    this.batchAddMessages(newMessages);
                 } else {
                     // 只加载新消息
+                    const addedMessages = [];
                     newMessages.forEach(msg => {
                         if (!this.loadedMessages.has(msg.id)) {
-                            this.addMessage(msg.username, msg.message, msg.username === this.username, msg.timestamp, msg.id);
-                            this.loadedMessages.add(msg.id);
-                            this.lastMessageId = msg.id;
+                            addedMessages.push(msg);
                         }
                     });
+                    
+                    // 批量添加新消息
+                    this.batchAddMessages(addedMessages);
                 }
                 
                 this.updateOnlineCount(data.online_count || 1);
             }
         } catch (error) {
             console.error('加载聊天历史失败:', error);
+        }
+    }
+    
+    // 批量添加消息，减少DOM操作
+    batchAddMessages(messages) {
+        if (messages.length === 0) return;
+        
+        let messagesFragment = document.createDocumentFragment();
+        
+        messages.forEach(msg => {
+            if (!this.loadedMessages.has(msg.id)) {
+                const messageElement = this.createMessageElement(msg.username, msg.message, msg.username === this.username, msg.timestamp, msg.id);
+                messagesFragment.appendChild(messageElement);
+                this.loadedMessages.set(msg.id, msg);
+                this.lastMessageId = msg.id;
+            }
+        });
+        
+        // 将批量创建的消息添加到DOM中
+        this.chatMessages.appendChild(messagesFragment);
+        
+        // 检查消息数量，超过限制则删除旧消息
+        this.limitMessageCount();
+        
+        // 滚动到底部
+        this.scrollToBottom();
+    }
+    
+    // 创建消息元素但不立即添加到DOM
+    createMessageElement(username, message, isOwn = false, timestamp = null, messageId = null) {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${isOwn ? 'own' : ''}`;
+        
+        // 为消息元素添加唯一ID
+        if (messageId) {
+            messageElement.id = `msg-${messageId}`;
+        }
+
+        const avatar = document.createElement('img');
+        avatar.className = 'message-avatar';
+        avatar.src = '/static/default_avatar.png';
+        avatar.alt = username;
+        avatar.style.borderRadius = '50%';
+        avatar.style.width = '40px';
+        avatar.style.height = '40px';
+        avatar.style.objectFit = 'cover';
+
+        const content = document.createElement('div');
+        content.className = 'message-content';
+
+        const info = document.createElement('div');
+        info.className = 'message-info';
+
+        const usernameSpan = document.createElement('span');
+        usernameSpan.className = 'message-username';
+        usernameSpan.textContent = username;
+
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'message-time';
+        if (timestamp) {
+            const date = new Date(timestamp);
+            timeSpan.textContent = date.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } else {
+            timeSpan.textContent = new Date().toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        info.appendChild(usernameSpan);
+        info.appendChild(timeSpan);
+
+        const text = document.createElement('div');
+        text.className = 'message-text';
+        text.textContent = this.processMessage(message);
+
+        content.appendChild(info);
+        content.appendChild(text);
+
+        messageElement.appendChild(avatar);
+        messageElement.appendChild(content);
+        
+        return messageElement;
+    }
+    
+    // 限制消息数量
+    limitMessageCount() {
+        const messages = this.chatMessages.querySelectorAll('.message:not(.system-message)');
+        const excess = messages.length - this.maxMessages;
+        
+        if (excess > 0) {
+            // 删除最早的excess条消息
+            for (let i = 0; i < excess; i++) {
+                const messageElement = messages[i];
+                const messageId = messageElement.id.replace('msg-', '');
+                
+                // 从Map中删除
+                this.loadedMessages.delete(messageId);
+                
+                // 从DOM中删除
+                messageElement.remove();
+            }
         }
     }
 

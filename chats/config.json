@@ -18,7 +18,10 @@
         "require_auth": true,
         "require_registration": true,
         "filter_content": true,
-        "banned_words": ["spam", "advertisement"],
+        "banned_words": [
+            "spam",
+            "advertisement"
+        ],
         "password_min_length": 6
     },
     "paths": {

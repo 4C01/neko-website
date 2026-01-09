@@ -66,6 +66,7 @@
             align-items: flex-start;
             gap: 12px;
             animation: slideIn 0.3s ease-out;
+            margin-bottom: 10px;
         }
 
         .message.own {
@@ -88,27 +89,28 @@
 
         .message-content {
             max-width: 70%;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #ff00ffbb;
-            border-radius: 15px;
-            padding: 12px 16px;
+            padding: 0;
             color: #fff;
             font-family: 'Microsoft YaHei', sans-serif;
             word-wrap: break-word;
+            background: none;
+            border: none;
+            border-radius: 0;
         }
 
         .message.own .message-content {
-            background: rgba(138, 43, 226, 0.3);
-            border-color: #8A2BE2;
+            background: none;
+            border: none;
         }
 
         .message-info {
             font-size: 12px;
             color: #ff00ffbb;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
+            gap: 10px;
         }
 
         .message-username {
@@ -122,6 +124,7 @@
         .message-text {
             font-size: 14px;
             line-height: 1.4;
+            color: #fff;
         }
 
         .chat-input-area {
