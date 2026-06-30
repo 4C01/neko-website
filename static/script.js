@@ -45,6 +45,14 @@ window.addEventListener('load', function() {
     createBubbles();
     // 每隔一段时间重新创建彩球，实现循环效果
     setInterval(createBubbles, 5000);
+    
+    // 隐藏加载动画
+    const loaderWrapper = document.getElementById('loaderWrapper');
+    if (loaderWrapper) {
+        setTimeout(function() {
+            loaderWrapper.classList.add('hidden');
+        }, 500);
+    }
 });
 
 // 响应式功能：根据屏幕大小控制元素显示

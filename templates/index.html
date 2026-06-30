@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <!-- 加载动画遮罩层 -->
+    <div class="loader-wrapper" id="loaderWrapper">
+        <div class="loader"></div>
+    </div>
+    
     <!-- 最底层的图片盒子，位置在E3-H9区域 -->
     <div class="box-image"><img src="{{ url_for('static', filename='neko.png') }}" alt="" height=100%></div>
     
